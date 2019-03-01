@@ -40,8 +40,7 @@
       }
     }
 
-    //TODO find out why this doesn't work
-    &_valid+.postForm__hint {
+    &.valid+.postForm__hint {
       color: $success-color;
 
       &::after {
@@ -79,13 +78,22 @@
       font-weight: 600;
     }
   }
-
+  
   select {
     flex: 0 1 410px;
     height: 36px;
     border: 1px solid $border-color;
     background-color: white;
     color: $text-color;
+    
+    &+.postForm__hint {
+      color: $success-color;
+      
+      &::after {
+        content: "\2713";
+        border-color: $success-color;
+      }
+    }
   }
 
   &__file {
@@ -119,6 +127,11 @@
     height: 36px;
     margin-top: 29px;
     cursor: pointer;
+
+    &:disabled {
+      opacity: .65;
+      cursor: default;
+    }
   }
 
   .imageThumb {

@@ -1,5 +1,5 @@
 import React from "react";
-import placeholder from "../assets/images/placeholder.png";
+import placeholder from "../assets/images/placeholder.jpg";
 import "../styles/advert.scss";
 
 export default function AdvertList(props) {
@@ -54,11 +54,11 @@ function Advert(props) {
             </p> :
             null
         }
-        <input
-          type="button"
+        <a
+          href="#"
           value="Редактировать"
           className="advert__update"
-          onClick={() => update(data.id)} />
+          onClick={() => update(data.id)}>Редактировать</a>
         <input
           type="button"
           value="Удалить"

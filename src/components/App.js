@@ -19,7 +19,10 @@ export default class App extends Component {
 
   createAdvert = (data) => {
     const { adverts } = this.state;
-    const newAdverts = [data].concat(adverts);
+    const filteredAdverts = adverts.filter(advert => {
+      return advert.id !== data.id;
+    });
+    const newAdverts = [data].concat(filteredAdverts);
     this.setAdverts(newAdverts);
   }
 
@@ -39,7 +42,7 @@ export default class App extends Component {
     })
   }
 
-  finishedUpdating = () => {
+  unsetUpdated = () => {
     this.setState({
       updatedAdvert: null
     })
@@ -49,6 +52,9 @@ export default class App extends Component {
     const advertsString = localStorage.getItem('adverts');
     if (advertsString) {
       const adverts = JSON.parse(advertsString);
+      const sortedAdverts = adverts.sort((advert1, advert2) => {
+        return advert2.timestamp - advert1.timestamp;
+      });
       this.setState({
         adverts: adverts
       })
@@ -59,13 +65,13 @@ export default class App extends Component {
     const { adverts, updatedAdvert } = this.state;
     const lastAdvert = adverts[0];
     const lastAdvertId = lastAdvert ? lastAdvert.id : 0;
-    console.log(updatedAdvert);
     return (
       <div className="container">
         <AdvertForm
           updatedAdvert={updatedAdvert}
           createAdvert={this.createAdvert}
-          finishedUpdating={this.finishedUpdating}
+          unsetUpdated={this.unsetUpdated}
+          deleteAdvert={this.deleteAdvert}
           lastAdvertId={lastAdvertId} />
         {
           adverts.length > 0 ?

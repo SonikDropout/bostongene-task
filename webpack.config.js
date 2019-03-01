@@ -74,7 +74,7 @@ module.exports = {
       },
     ]
   },
-  plugins: [ 
+  plugins: [
     new MiniCssExtractPlugin({
       filename: 'style.css',
     }),
@@ -86,5 +86,5 @@ module.exports = {
   optimization: {
     minimizer: [new UglifyJsPlugin()],
   },
-  devtool: devMode ? 'eval-source-map' : null,
+  devtool: devMode ? 'eval-source-map' : false,
 };

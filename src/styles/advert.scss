@@ -28,13 +28,14 @@
     justify-content: flex-start;
   }
 
+  &__city,
+  &__remove {
+    margin-top: 14px;
+  }
+
   &__phone,
   &__city {
     color: $header-color;
-  }
-
-  &__city {
-    margin-top: 14px;
   }
 
   &__city::before {
@@ -65,8 +66,10 @@
   &__update {
     color: $blue;
     border-color: $blue;
-    margin-bottom: 14px;
     margin-top: auto;
+    text-align: center;
+    text-decoration: none;
+    line-height: 34px;
   }
 
   &__remove {

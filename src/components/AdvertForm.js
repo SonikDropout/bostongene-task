@@ -3,58 +3,103 @@ import MaskedInput from 'react-text-mask';
 import '../styles/form.scss';
 
 export default class AdvertFrom extends Component {
-  state = {
-    isFieldsValid: true,
-    isRequiredSet: {
-      title: false,
-      phone: false,
-    },
-    data: {}
+  state = this.initialState;
+
+  get initialState() {
+    return {
+      isValid: {
+        title: true,
+        description: true,
+        phone: true,
+        city: true,
+        image: true,
+      },
+      isSet: {
+        title: false,
+        description: false,
+        phone: false,
+        city: false,
+        image: false,
+      },
+      isUpdating: false,
+      data: {}
+    };
   }
 
   componentWillUpdate(nextProps, nextState) {
     if (nextProps.updatedAdvert) {
       nextState.data = nextProps.updatedAdvert;
+      nextState.isUpdating = true;
+      nextProps.unsetUpdated();
+      for (let key in nextState.data) {
+        nextState.isSet[key] = true;
+      }
     }
   }
 
   get formValid() {
     const {
-      isFieldsValid,
-      isRequiredSet
+      isValid,
+      isSet
     } = this.state;
 
-    const allRequiredSet = isRequiredSet.title && isRequiredSet.phone;
+    for (let key in isValid) {
+      if (!isValid[key]) {
+        return false;
+      }
+    }
 
-    return allRequiredSet && isFieldsValid;
+    return isSet.title && isSet.phone;
   }
 
-  setRequiredSet = key => {
-    let isRequiredSet = { ...this.state.isRequiredSet };
-    isRequiredSet[key] = true;
-    this.setState({
-      isRequiredSet: isRequiredSet
-    });
-  }
+  setValue = (key, value, isValid) => {
+    let dataCopy = { ...this.state.data };
+    let isValidCopy = { ...this.state.isValid };
+    let isSetCopy = { ...this.state.isSet };
 
-  setValidity = flag => {
-    this.setState({
-      isFieldsValid: flag
-    })
-  }
+    isValidCopy[key] = isValid;
+    isSetCopy[key] = true;
+    dataCopy[key] = value;
 
-  setValue = (key, value) => {
-    let data = { ...this.state.data }
-    data[key] = value;
     this.setState({
-      data: data
+      data: dataCopy,
+      isValid: isValidCopy,
+      isSet: isSetCopy
     })
   }
 
   unsetValue = key => {
     let data = { ...this.state.data }
     delete data[key];
-    this.setState({ data });
+    this.setState({ data: data });
+  }
+
+  handleTitleChange = event => {
+    const value = event.target.value;
+    const isValid = value.length < 140 && value.length > 0;
+
+    this.setValue('title', value, isValid);
+  }
+
+  handleDescriptionChange = event => {
+    const value = event.target.value;
+    const isValid = value.length < 300 && value.length > 0;
+
+    this.setValue('description', value, isValid);
+  }
+
+  handlePhoneChange = event => {
+    const value = event.target.value;
+    const pattern = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
+    const isValid = pattern.test(value);
+
+    this.setValue('phone', value, isValid);
+  }
+
+  handleCityChange = event => {
+    const value = event.target.value;
+
+    this.setValue('city', value, true);
   }
 
   handleSubmit = event => {
@@ -63,21 +108,24 @@ export default class AdvertFrom extends Component {
     const {
       lastAdvertId,
       createAdvert,
-      finishedUpdating
     } = this.props;
 
     if (this.formValid) {
-      const newAdvertId = lastAdvertId + 1;
-      data.id = newAdvertId;
+      data.id = data.id || lastAdvertId + 1;
+      data.timestamp = Date.now();
       createAdvert(data);
-      finishedUpdating();
-      this.setState({ data: {} })
+      const initialState = this.initialState;
+      this.setState(initialState);
     }
   }
 
   render() {
-    const { data } = this.state;
-    console.log(data.title);
+    const {
+      data,
+      isSet,
+      isValid,
+      isUpdating
+    } = this.state;
 
     return (
       <div className="section">
@@ -85,13 +133,31 @@ export default class AdvertFrom extends Component {
         <form
           className="postForm"
           onSubmit={this.handleSubmit}>
-          <TitleInput value={data.title || ""} notifyIsSet={this.setRequiredSet} setFormValidity={this.setValidity} setValue={this.setValue} />
-          <DescriptionTextarea value={data.description || ""} setFormValidity={this.setValidity} setValue={this.setValue} />
-          <PhoneInput value={data.phone || ""} notifyIsSet={this.setRequiredSet} setFormValidity={this.setValidity} setValue={this.setValue} />
-          <CityInput value={data.city || ""} setValue={this.setValue} />
-          <ImageInput value={data.image || ""} setValue={this.setValue} unsetValue={this.unsetValue} />
-          <button type="submit" className="btn postForm__submit">
-            Подать
+          <TitleInput
+            handleChange={this.handleTitleChange}
+            value={data.title || ""}
+            isValid={isValid.title}
+            isSet={isSet.title} />
+          <DescriptionTextarea
+            handleChange={this.handleDescriptionChange}
+            value={data.description || ""}
+            isValid={isValid.description}
+            isSet={isSet.description} />
+          <PhoneInput
+            handleChange={this.handlePhoneChange}
+            value={data.phone || ""}
+            isValid={isValid.phone}
+            isSet={isSet.phone} />
+          <CityInput
+            handleChange={this.handleCityChange}
+            value={data.city || ""} />
+          <ImageInput
+            image={data.image || ""}
+            imageName={data.imageName || ""}
+            setValue={this.setValue}
+            unsetValue={this.unsetValue} />
+          <button type="submit" className="postForm__submit" disabled={!this.formValid}>
+            {isUpdating ? 'Сохранить' : 'Подать'}
           </button>
         </form>
       </div>
@@ -99,49 +165,22 @@ export default class AdvertFrom extends Component {
   }
 }
 
+
 class TitleInput extends Component {
-  state = {
-    isValid: false,
-    value: this.props.initialValue,
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    nextState.value = nextProps.value;
-    if (nextProps.value !== "") {
-      nextState.isValid = true;
-    }
-  }
-
-  handleChange = event => {
-    const value = event.target.value;
-    const isValid = value.length < 140 && value.length > 0;
-    const {
-      notifyIsSet,
-      setFormValidity,
-      setValue
-    } = this.props;
-
-    notifyIsSet('title');
-    setFormValidity(isValid);
-    isValid ? setValue('title', value) : null;
-
-    this.setState({
-      value: value,
-      isValid: isValid
-    });
-  }
 
   render() {
     const {
       isValid,
+      isSet,
       value
-    } = this.state;
+    } = this.props;
 
-    const className = "postForm__input" + (isValid ?
-      " postFrom__input_valid" :
-      " postForm__input_invalid");
+    const className = "postForm__input" + (isSet ? isValid ?
+      " valid" :
+      " postForm__input_invalid" :
+      "");
 
-    const hintMessage = isValid ?
+    const hintMessage = isValid && isSet ?
       "Заполнено" :
       "Обязательное поле Не более 140 символов";
 
@@ -149,7 +188,7 @@ class TitleInput extends Component {
       <div className="postForm__group">
         <label className="postForm__label" htmlFor="title">Заголовок</label>
         <input type="text"
-          onChange={this.handleChange}
+          onChange={this.props.handleChange}
           value={value}
           className={className}
           name="title"
@@ -161,42 +200,20 @@ class TitleInput extends Component {
 }
 
 class DescriptionTextarea extends Component {
-  state = {
-    isValid: false,
-    value: this.props.initialValue,
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    nextState.value = nextProps.value;
-    if (nextProps.value !== "") {
-      nextState.isValid = true;
-    }
-  }
-
-  handleChange = event => {
-    const value = event.target.value;
-    const isValid = value.length < 300 && value.length > 0;
-
-    this.props.setFormValidity(isValid);
-    isValid ? this.props.setValue('description', value) : null;
-
-    this.setState({
-      value: value,
-      isValid: isValid
-    });
-  }
 
   render() {
     const {
       isValid,
+      isSet,
       value
-    } = this.state;
+    } = this.props;
 
-    const className = "postForm__input" + (isValid ?
-      " postFrom__input_valid" :
-      " postForm__input_invalid");
+    const className = "postForm__input" + (isSet ? isValid ?
+      " valid" :
+      " postForm__input_invalid" :
+      "");
 
-    const hintMessage = isValid ?
+    const hintMessage = isValid && isSet ?
       "Заполнено" :
       "Не более 300 символов";
 
@@ -204,7 +221,7 @@ class DescriptionTextarea extends Component {
       <div className="postForm__group">
         <label className="postForm__label" htmlFor="description">Описание</label>
         <textarea
-          onChange={this.handleChange}
+          onChange={this.props.handleChange}
           value={value}
           className={className}
           name="description"
@@ -216,50 +233,20 @@ class DescriptionTextarea extends Component {
 }
 
 class PhoneInput extends Component {
-  state = {
-    isValid: false,
-    value: this.props.initialValue,
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    nextState.value = nextProps.value;
-    if (nextProps.value !== "") {
-      nextState.isValid = true;
-    }
-  }
-
-  handleChange = event => {
-    const value = event.target.value;
-    const pattern = /^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/;
-    const isValid = pattern.test(value);
-    const {
-      notifyIsSet,
-      setFormValidity,
-      setValue
-    } = this.props;
-
-    notifyIsSet('phone');
-    setFormValidity(isValid);
-    setValue('phone', value);
-
-    this.setState({
-      value: value,
-      isValid: isValid
-    });
-
-  }
 
   render() {
     const {
       isValid,
+      isSet,
       value
-    } = this.state;
+    } = this.props;
 
-    const className = "postForm__input" + (isValid ?
-      " postFrom__input_valid" :
-      " postForm__input_invalid");
+    const className = "postForm__input" + (isSet ? isValid ?
+      " valid" :
+      " postForm__input_invalid" :
+      "");
 
-    const hintMessage = isValid ?
+    const hintMessage = isValid && isSet ?
       "Заполнено" :
       "Обязательное поле";
 
@@ -268,7 +255,7 @@ class PhoneInput extends Component {
         <label className="postForm__label" htmlFor="phone">Телефон</label>
         <MaskedInput
           mask={['+', '7', ' ', '(', /[1-9]/, /\d/, /\d/, ')', ' ', /\d/, /\d/, /\d/, '-', /\d/, /\d/, '-', /\d/, /\d/]}
-          onChange={this.handleChange}
+          onChange={this.props.handleChange}
           value={value}
           className={className}
           showMask={true}
@@ -281,45 +268,26 @@ class PhoneInput extends Component {
 }
 
 class CityInput extends Component {
-  state = {
-    value: this.props.initialValue,
-  }
-
-  componentWillUpdate(nextProps, nextState) {
-    nextState.value = nextProps.value;
-  }
-
-  handleChange = event => {
-    const value = event.target.value;
-    this.props.setValue('city', value);
-    this.setState({
-      value: value
-    });
-  }
 
   render() {
     const {
       value
-    } = this.state;
-
-    const className = "postForm__input" + isFilled ?
-      " postFrom__input_valid" :
-      " postForm__input_invalid";
-
-    const hint = value ?
-      <span className="postForm__hint">Заполнено</span> :
-      null;
+    } = this.props;
 
     return (
       <div className="postForm__group">
         <label className="postForm__label" htmlFor="city">Город</label>
-        <select id="city" className="postFrom__select" value={this.state.value} onChange={this.handleChange}>
+        <select id="city" className="postFrom__select" value={value} onChange={this.props.handleChange}>
           <option className="postFrom__option" value="">Не выбран</option>
           <option className="postFrom__option" value="Москва">Москва</option>
           <option className="postFrom__option" value="Хаборовск">Хаборовск</option>
           <option className="postFrom__option" value="Чебоксары">Чебоксары</option>
         </select>
-        {hint}
+        {
+          value ?
+            <span className="postForm__hint">Заполнено</span> :
+            null
+        }
       </div>
     )
   }
@@ -327,16 +295,7 @@ class CityInput extends Component {
 
 
 class ImageInput extends Component {
-  state = {
-    image: this.props.initialValue,
-    imageName: ""
-  }
-
   fileInput = React.createRef();
-
-  componentWillUpdate(nextProps, nextState) {
-    nextState.image = nextProps.value;
-  }
 
   handleChange = event => {
     const file = event.target.files[0];
@@ -350,20 +309,14 @@ class ImageInput extends Component {
     reader.readAsDataURL(file);
     reader.onload = event => {
       const encodedImage = event.target.result;
-      this.props.setValue('image', encodedImage);
-      this.setState({
-        image: encodedImage,
-        imageName: imageName,
-      })
+      this.props.setValue('image', encodedImage, true);
+      this.props.setValue('imageName', imageName, true);
     }
   }
 
   unsetImage = () => {
-    this.setState({
-      image: "",
-      imageName: "",
-    });
     this.fileInput.current.value = "";
+    this.props.unsetValue('imageName');
     this.props.unsetValue('image');
   }
 
@@ -375,8 +328,7 @@ class ImageInput extends Component {
     const {
       image,
       imageName,
-      file
-    } = this.state;
+    } = this.props;
 
     return (
       <div className="postForm__group postForm__group_file">
