@@ -1,0 +1,76 @@
+@import "variables";
+
+.advert {
+  margin: 24px 0;
+  display: flex;
+
+  &__rightBlock {
+    width: 350px;
+    margin-right: 100px;
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: normal;
+  }
+
+  &__desctiption {
+    margin: 2px 0;
+  }
+
+  &__image {
+    width: 100%;
+  }
+
+  &__leftBlock {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+  &__phone,
+  &__city {
+    color: $header-color;
+  }
+
+  &__city {
+    margin-top: 14px;
+  }
+
+  &__city::before {
+    content: "";
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    background-image: url("../assets/icons/advert-sprite.png");
+    vertical-align: bottom;
+    margin-right: 7px;
+  }
+  
+  &__phone::before {
+    @extend .advert__city::before;
+    background-position: -24px 0;
+  }
+
+  &__update,
+  &__remove {
+    width: 178px;
+    height: 36px;
+    border-radius: 3px;
+    border: 1px solid;
+    background-color: white;
+    cursor: pointer;
+  }
+
+  &__update {
+    color: $blue;
+    border-color: $blue;
+    margin-bottom: 14px;
+    margin-top: auto;
+  }
+
+  &__remove {
+    color: $orange;
+    border-color: $orange;
+  }
+}

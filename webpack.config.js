@@ -5,7 +5,7 @@ const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 
 
 
-const devMode = process.env.NODE_ENV !== 'production'
+const devMode = process.env.NODE_ENV === 'development';
 
 
 

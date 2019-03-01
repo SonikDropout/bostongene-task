@@ -1,0 +1,147 @@
+@import "variables";
+
+.postForm {
+  &__group {
+    display: flex;
+    flex-wrap: wrap;
+    margin-top: 29px;
+
+    &_file {
+      display: block;
+    }
+  }
+
+  &__label {
+    width: 100%;
+  }
+
+  &__input {
+    flex: 1 1 410px;
+    border: 1px solid $border-color;
+    border-radius: 3px;
+    height: 36px;
+    padding: 9px 16px;
+    color: $text-color;
+
+    &#description {
+      height: 147px;
+    }
+
+    &_invalid {
+      border-color: $warning-color;
+
+      &+.postForm__hint {
+        color: $warning-color;
+
+        &::after {
+          content: "!";
+          border-color: $warning-color;
+        }
+      }
+    }
+
+    //TODO find out why this doesn't work
+    &_valid+.postForm__hint {
+      color: $success-color;
+
+      &::after {
+        content: "\2713";
+        border-color: $success-color;
+      }
+    }
+  }
+
+  &__hint {
+    flex: 1 1 208px;
+    padding-left: 24px;
+    position: relative;
+
+    &::before {
+      content: "";
+      display: block;
+      height: 100%;
+      width: 18px;
+      margin-right: 4px;
+      float: left;
+    }
+    
+    &::after {
+      content: "?";
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      border: 1px solid $text-color;
+      border-radius: 50%;
+      text-align: center;
+      top: 2px;
+      left: 24px;
+      line-height: 14px;
+      font-weight: 600;
+    }
+  }
+
+  select {
+    flex: 0 1 410px;
+    height: 36px;
+    border: 1px solid $border-color;
+    background-color: white;
+    color: $text-color;
+  }
+
+  &__file {
+    display: block;
+    width: 178px;
+    height: 36px;
+    border: 1px solid $blue;
+    border-radius: 3px;
+    color: $blue;
+    line-height: 34px;
+    text-align: center;
+    cursor: pointer;
+
+    span:before {
+      content: "";
+      width: 16px;
+      height: 16px;
+      background: url('../assets/icons/clip.png');
+      display: inline-block;
+      vertical-align: middle;
+      margin-right: 4px;
+    }
+  }
+
+  &__submit {
+    border-radius: 3px;
+    border: none;
+    background: linear-gradient($blue, $dark-blue);
+    color: white;
+    width: 141px;
+    height: 36px;
+    margin-top: 29px;
+    cursor: pointer;
+  }
+
+  .imageThumb {
+    margin-top: 24px;
+    height: 50px;
+
+    &__img {
+      height: 100%;
+      float: left;
+      margin-right: 10px;
+    }
+
+    &__name {
+      color: $blue;
+      cursor: pointer;
+    }
+
+    &__unset {
+      color: $orange;
+      border-bottom: 1px dashed $orange;
+      display: inline-block;
+      margin-top: 50px-44px;
+      cursor: pointer;
+    }
+  }
+}
