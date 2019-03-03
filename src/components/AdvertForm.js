@@ -96,12 +96,6 @@ export default class AdvertFrom extends Component {
     this.setValue('phone', value, isValid);
   }
 
-  handleCityChange = event => {
-    const value = event.target.value;
-
-    this.setValue('city', value, true);
-  }
-
   handleSubmit = event => {
     event.preventDefault();
     let data = { ...this.state.data }
@@ -149,7 +143,8 @@ export default class AdvertFrom extends Component {
             isValid={isValid.phone}
             isSet={isSet.phone} />
           <CityInput
-            handleChange={this.handleCityChange}
+            setValue={this.setValue}
+            unsetValue={this.unsetValue}
             value={data.city || ""} />
           <ImageInput
             image={data.image || ""}
@@ -268,21 +263,57 @@ class PhoneInput extends Component {
 }
 
 class CityInput extends Component {
+  state = {
+    isOptionsVisible: false
+  }
+
+  toggleOptions = (event) => {
+    if (event.target.className === 'customSelect__unset') return;
+    this.setState({
+      isOptionsVisible: !this.state.isOptionsVisible
+    })
+  }
+
+  selectOption = (value) => {
+    this.props.setValue('city', value, true);
+    this.setState({
+      isOptionsVisible: !this.state.isOptionsVisible
+    });
+  }
 
   render() {
     const {
-      value
+      value,
+      unsetValue
     } = this.props;
+
+    const { isOptionsVisible } = this.state;
 
     return (
       <div className="postForm__group">
         <label className="postForm__label" htmlFor="city">Город</label>
-        <select id="city" className="postFrom__select" value={value} onChange={this.props.handleChange}>
-          <option className="postFrom__option" value="">Не выбран</option>
-          <option className="postFrom__option" value="Москва">Москва</option>
-          <option className="postFrom__option" value="Хаборовск">Хаборовск</option>
-          <option className="postFrom__option" value="Чебоксары">Чебоксары</option>
+        <select id="city" value={value}>
+          <option value=""></option>
+          <option value="Москва">Москва</option>
+          <option value="Хаборовск">Хаборовск</option>
+          <option value="Чебоксары">Чебоксары</option>
         </select>
+        <div className="postForm__customSelect customSelect">
+          <div onClick={this.toggleOptions} className="customSelect__field">
+            {value}
+            <span>&#x2304;</span>
+            {
+              value ?
+                <button onClick={() => unsetValue('city')} className="customSelect__unset">&#x2715;</button> :
+                null
+            }
+          </div>
+          <ul className="customSelect__options" style={{ display: isOptionsVisible ? 'block' : 'none' }}>
+            <li onClick={() => this.selectOption('Москва')} className="customSelect__option">Москва</li>
+            <li onClick={() => this.selectOption('Хабаровск')} className="customSelect__option">Хабаровск</li>
+            <li onClick={() => this.selectOption('Чебоксары')} className="customSelect__option">Чебоксары</li>
+          </ul>
+        </div>
         {
           value ?
             <span className="postForm__hint">Заполнено</span> :

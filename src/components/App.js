@@ -5,7 +5,6 @@ import AdvertList from "./AdvertList";
 export default class App extends Component {
   state = {
     adverts: [],
-    isDeleting: false,
     updatedAdvert: null
   }
 
@@ -56,7 +55,7 @@ export default class App extends Component {
         return advert2.timestamp - advert1.timestamp;
       });
       this.setState({
-        adverts: adverts
+        adverts: sortedAdverts
       })
     }
   }
