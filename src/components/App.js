@@ -1,86 +1,80 @@
-import React, { Component } from "react";
-import AdvertForm from "./AdvertForm";
-import AdvertList from "./AdvertList";
+import React, { useState } from "react";
+import AdvertForm from "./form/AdvertForm";
+import AdvertList from "./list/AdvertList";
 
-export default class App extends Component {
-  state = {
-    adverts: [],
-    updatedAdvert: null
+export default function App() {
+
+  const initAdverts = localStorage.getItem('adverts')
+    ? JSON.parse(localStorage.getItem('adverts')).sort((ad1, ad2) => (
+      ad2.timestamp - ad1.timestamp
+    ))
+    : [];
+
+  const [adverts, setAdverts] = useState(initAdverts);
+
+  const [isEditing, setEditing] = useState(false);
+
+  const initAdvertState = {
+    title: '',
+    description: '',
+    phone: '',
+    city: '',
+    image: '',
+    imageName: '',
+    timestamp: null
   }
 
-  setAdverts(adverts) {
-    const advertsJSON = JSON.stringify(adverts);
-    localStorage.setItem('adverts', advertsJSON);
-    this.setState({
-      adverts: adverts
-    })
+  const [currentAdvert, setCurrentAdvert] = useState(initAdvertState);
+
+  const addAdvert = (advert) => {
+    const updatedAdverts = [advert].concat(adverts);
+    updateAdverts(updatedAdverts)
   }
 
-  createAdvert = (data) => {
-    const { adverts } = this.state;
-    const filteredAdverts = adverts.filter(advert => {
-      return advert.id !== data.id;
-    });
-    const newAdverts = [data].concat(filteredAdverts);
-    this.setAdverts(newAdverts);
+  const deleteAdvert = (timestamp) => {
+    const updatedAdverts = adverts.filter(advert => (
+      advert.timestamp !== timestamp
+    ))
+    updateAdverts(updatedAdverts)
   }
 
-  deleteAdvert = (id) => {
-    const { adverts } = this.state;
-    const updatedAdverts = adverts.filter(advert => {
-      return advert.id !== id;
-    });
-    this.setAdverts(updatedAdverts);
+  const editAdvert = advert => {
+    setEditing(true)
+
+    setCurrentAdvert({ ...advert })
   }
 
-  updateAdvert = (id) => {
-    const { adverts } = this.state;
-    const advertToUpdate = adverts.filter(advert => advert.id === id)[0];
-    this.setState({
-      updatedAdvert: { ...advertToUpdate }
-    })
+  const updateAdvert = (updatedAdvert) => {
+    setEditing(false)
+    const updatedAdverts = adverts.map(advert => (
+      advert.timestamp === updatedAdvert.timestamp
+        ? updatedAdvert
+        : advert
+    ))
+    updateAdverts(updatedAdverts)
   }
 
-  unsetUpdated = () => {
-    this.setState({
-      updatedAdvert: null
-    })
+  const updateAdverts = (updatedAdverts) => {
+    setAdverts(updatedAdverts);
+    localStorage.setItem('adverts', JSON.stringify(updatedAdverts));
+    setCurrentAdvert(initAdvertState);
   }
 
-  componentWillMount() {
-    const advertsString = localStorage.getItem('adverts');
-    if (advertsString) {
-      const adverts = JSON.parse(advertsString);
-      const sortedAdverts = adverts.sort((advert1, advert2) => {
-        return advert2.timestamp - advert1.timestamp;
-      });
-      this.setState({
-        adverts: sortedAdverts
-      })
-    }
-  }
-
-  render() {
-    const { adverts, updatedAdvert } = this.state;
-    const lastAdvert = adverts[0];
-    const lastAdvertId = lastAdvert ? lastAdvert.id : 0;
-    return (
-      <div className="container">
-        <AdvertForm
-          updatedAdvert={updatedAdvert}
-          createAdvert={this.createAdvert}
-          unsetUpdated={this.unsetUpdated}
-          deleteAdvert={this.deleteAdvert}
-          lastAdvertId={lastAdvertId} />
-        {
-          adverts.length > 0 ?
-            <AdvertList
-              adverts={adverts}
-              remove={this.deleteAdvert}
-              update={this.updateAdvert} /> :
-            null
-        }
-      </div>
-    )
-  }
+  return (
+    <div className="container">
+      <AdvertForm
+        currentAdvert={currentAdvert}
+        isEditing={isEditing}
+        addAdvert={addAdvert}
+        updateAdvert={updateAdvert} />
+      {
+        adverts.length > 0
+          ? <AdvertList
+            adverts={adverts}
+            deleteAdvert={deleteAdvert}
+            editAdvert={editAdvert} />
+          : null
+      }
+    </div>
+  )
 }
